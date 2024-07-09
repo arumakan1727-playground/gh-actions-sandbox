@@ -1,0 +1,14 @@
+name: Deploy
+
+on:
+  push:
+    paths:
+      - 'app/**'
+      - '!infra/**'  # infra/** が含まれる場合は apply+deploy-on-push.yml に任せる
+      - .github/workflows/deploy-on-push.yml
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo 'Deployed app'
