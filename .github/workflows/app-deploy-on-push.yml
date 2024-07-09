@@ -42,4 +42,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: date '+%Y-%m-%d (%a) %H:%M:%S'
+      - run: exit 1
       - run: echo 'Deployed app'
