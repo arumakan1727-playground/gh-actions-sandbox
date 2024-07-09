@@ -1,0 +1,48 @@
+name: Apply and deploy on push
+
+on:
+  push:
+    paths:
+      - infra/**
+      - app/**
+      - .github/workflows/apply+deploy-on-push.yml
+
+env:
+  TZ: Asia/Tokyo
+
+jobs:
+  check_changes:
+    runs-on: ubuntu-latest
+    outputs:
+      app_changed: ${{ steps.filter.outputs.app }}
+      infra_changed: ${{ steps.filter.outputs.infra }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            app:
+              - 'app/**'
+            infra:
+              - 'infra/**'
+
+  tf_apply:
+    needs: check_changes
+    if: needs.check_changes.outputs.infra_changed == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - run: sleep 10
+      - run: date '+%Y-%m-%d (%a) %H:%M:%S'
+      - run: echo 'Applied chages to infra'
+
+  app_deploy:
+    needs: [check_changes, tf_apply]
+    if: needs.check_changes.outputs.app_changed == 'true' && (needs.tf_apply.result == 'success' || needs.tf_apply.result == 'skipped')
+    runs-on: ubuntu-latest
+    steps:
+      - run: date '+%Y-%m-%d (%a) %H:%M:%S'
+      - run: echo 'Deployed app'
