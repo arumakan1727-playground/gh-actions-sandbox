@@ -1,0 +1,31 @@
+name: 'Deploy app on push'
+
+on:
+  push:
+    paths:
+      - app/**
+      - .github/workflows/infra-apply-on-push.yml
+
+  workflow_run:
+    workflows: ['Apply infra on push']
+    types: [completed]
+
+env:
+  TZ: Asia/Tokyo
+
+jobs:
+  check-infra-status:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success'
+    steps:
+      - run: date '+%Y-%m-%d (%a) %H:%M:%S'
+      - run: echo 'Infra workflow completed successfully'
+
+  fake-deploy:
+    needs: check-infra-status
+    if: always() && (needs.check-infra-status.result == 'success' || needs.check-infra-status.result == 'skipped')
+    runs-on: ubuntu-latest
+    steps:
+      - run: date '+%Y-%m-%d (%a) %H:%M:%S'
+      - run: echo 'Deployed app'
+
