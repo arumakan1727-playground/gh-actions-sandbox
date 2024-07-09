@@ -30,7 +30,7 @@ jobs:
               - 'infra/**'
 
   deploy:
-    needs: check-infra-status
+    needs: check_changes
     # - infra/** のみ変更された場合:  workflow_run イベントにより実行される
     #
     # - app/** のみ変更された場合:    push イベント && infra_changed == false なので実行される
