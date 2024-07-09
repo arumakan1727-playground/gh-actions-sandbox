@@ -1,0 +1,22 @@
+name: 'Apply infra on push'
+
+on:
+  push:
+    paths:
+      - infra/**
+      - .github/workflows/infra-apply-on-push.yml
+
+env:
+  TZ: Asia/Tokyo
+
+jobs:
+  fake-apply:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo Start
+
+      - run: sleep 10
+
+      - run: date '+%Y-%m-%d (%a) %H:%M:%S'
+
+      - run: echo Finish

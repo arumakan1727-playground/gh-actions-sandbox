@@ -1,0 +1,45 @@
+name: 'Deploy app on push'
+
+on:
+  push:
+    paths:
+      - app/**
+      - .github/workflows/app-deploy-on-push.yml
+
+  workflow_run:
+    workflows: ['Apply infra on push']
+    types: [completed]
+
+env:
+  TZ: Asia/Tokyo
+
+jobs:
+  # まず infra/** に変更があるかチェックして outputs へ出力
+  check_changes:
+    runs-on: ubuntu-latest
+    outputs:
+      infra_changed: ${{ steps.filter.outputs.infra }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            infra:
+              - 'infra/**'
+
+  deploy:
+    needs: check-infra-status
+    # - infra/** のみ変更された場合:  workflow_run イベントにより実行される
+    #
+    # - app/** のみ変更された場合:    push イベント && infra_changed == false なので実行される
+    #
+    # - 両方変更された場合:
+    #     1. まず push イベントでトリガーされるが、 infra_changed == true なのでスキップされる
+    #     2. workflow_run イベントにより実行される
+    if: (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') || needs.check_changes.outputs.infra_changed == 'false'
+    runs-on: ubuntu-latest
+    steps:
+      - run: date '+%Y-%m-%d (%a) %H:%M:%S'
+      - run: echo 'Deployed app'
