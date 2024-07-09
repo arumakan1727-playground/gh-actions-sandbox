@@ -4,11 +4,27 @@ on:
   push:
     paths:
       - 'app/**'
-      - '!infra/**'  # infra/** が含まれる場合は apply+deploy-on-push.yml に任せる
       - .github/workflows/deploy-on-push.yml
 
 jobs:
+  check_changes:
+    runs-on: ubuntu-latest
+    outputs:
+      infra_changed: ${{ steps.filter.outputs.infra }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            infra:
+              - 'infra/**'
+
   deploy:
     runs-on: ubuntu-latest
+    needs: check_changes
+    # infra/** が含まれる場合は apply+deploy-on-push.yml に任せてこっちは何もしない
+    if: needs.check_changes.outputs.infra_changed == 'false'
     steps:
       - run: echo 'Deployed app'
